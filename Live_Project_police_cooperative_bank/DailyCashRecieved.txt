@@ -1,0 +1,47 @@
+create temporary table temp_share_rec select share.particulars,share.account_no,share.deposit_amount as share_deposit_amount  from share where share.particulars='2015-02-28'
+ and share.deposit_amount is not null;
+
+create temporary table temp_rd_rec select rd.particulars,rd.account_no,rd.deposit_amount as rd_deposit_amount
+from rd where rd.particulars='2015-02-28' and rd.deposit_amount is not null;
+
+create temporary table temp_loan_rec select loan_payment.particulars,loan_payment.account_no,
+loan_payment.installment_paid as loan_installment_paid,loan_payment.interest_paid as loan_interest_paid from loan_payment
+where loan_payment.particulars='2015-02-28' and loan_payment.installment_paid is not null;
+
+create temporary table temp_dailycashrec1 select temp_share_rec.particulars, temp_share_rec.account_no,temp_share_rec.share_deposit_amount ,
+temp_rd_rec.rd_deposit_amount  ,
+temp_loan_rec.loan_installment_paid,temp_loan_rec.loan_interest_paid
+from temp_share_rec left join   temp_rd_rec on temp_share_rec.account_no=temp_rd_rec.account_no left join  temp_loan_rec
+on temp_loan_rec.account_no=temp_share_rec.account_no;
+
+create temporary table temp_dailycashrec2 select temp_rd_rec.particulars, temp_rd_rec.account_no,temp_share_rec.share_deposit_amount ,
+temp_rd_rec.rd_deposit_amount  ,
+temp_loan_rec.loan_installment_paid,temp_loan_rec.loan_interest_paid
+from temp_share_rec right join   temp_rd_rec on temp_share_rec.account_no=temp_rd_rec.account_no left join  temp_loan_rec
+on temp_loan_rec.account_no=temp_rd_rec.account_no;
+
+
+create temporary table temp_dailycashrec3 select temp_loan_rec.particulars, temp_loan_rec.account_no,
+temp_share_rec.share_deposit_amount ,
+temp_rd_rec.rd_deposit_amount  ,
+temp_loan_rec.loan_installment_paid,temp_loan_rec.loan_interest_paid
+from temp_rd_rec right join   temp_loan_rec on temp_loan_rec.account_no=temp_rd_rec.account_no left join  temp_share_rec
+on temp_loan_rec.account_no=temp_share_rec.account_no;
+
+
+create temporary  table temp_dailycashrec
+(select * from temp_dailycashrec1)
+union
+(select * from temp_dailycashrec2)
+union
+(select * from temp_dailycashrec3);
+
+create temporary table dailycashrec( select temp_dailycashrec.particulars,customer.name,
+if(customer.doac=temp_dailycashrec.particulars,customer.voucher_no,null)as voucher_no,
+temp_dailycashrec.account_no,
+temp_dailycashrec.share_deposit_amount,if(customer.doac=temp_dailycashrec.particulars,customer.entry_fee,null)as 
+entry_fee,if(customer.doac=temp_dailycashrec.particulars,customer.mice,null)as mice,temp_dailycashrec.rd_deposit_amount
+,temp_dailycashrec.loan_installment_paid,temp_dailycashrec.loan_interest_paid
+from temp_dailycashrec  inner join customer using(account_no));
+ 
+

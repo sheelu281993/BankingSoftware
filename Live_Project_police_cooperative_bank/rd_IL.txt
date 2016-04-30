@@ -1,0 +1,9 @@
+create temporary table temp_rd select  account_no,particulars ,deposit_amount,withdraw_amount,balance from rd where account_no=123;
+create temporary table temp_rd_interest select  account_no,particulars ,deposit_interest,withdraw_interest,total_interest from rd_interest where account_no=123;
+
+create temporary table rd_IL select temp_rd.account_no,temp_rd.particulars as sortbydate,temp_rd.deposit_amount,temp_rd.withdraw_amount,
+temp_rd.balance ,temp_rd_interest.deposit_interest,
+temp_rd_interest.withdraw_interest,temp_rd_interest.total_interest
+from temp_rd  left join temp_rd_interest    on temp_rd.particulars=temp_rd_interest.particulars order by  sortbydate;
+
+

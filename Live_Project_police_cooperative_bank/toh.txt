@@ -1,0 +1,14 @@
+
+import java.awt.Applet;
+
+public class TowerOfHanoi extends Applet
+{
+public void start()
+{
+
+}
+public void paint(Graphics g)
+{
+g.drawString("Hello World",200,300);
+}
+}

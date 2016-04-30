@@ -1,0 +1,46 @@
+create table share_interest(account_no int unsigned,particulars date,deposit_interest double(16,2),withdraw_interest double(16,2),total_interest double(16,2),
+foreign key(account_no) references customer(account_no) on DELETE RESTRICT on UPDATE CASCADE)ENGINE=INNODB;
+
+
+
+create table rd_interest(account_no int unsigned,particulars date,deposit_interest double(16,2),withdraw_interest double(16,2),total_interest double(16,2),
+foreign key(account_no) references customer(account_no) on DELETE RESTRICT on UPDATE CASCADE)ENGINE=INNODB;
+
+
+ select share.account_no,share.particulars,share.deposit_amount,share.withdraw_amount,share.balance ,share_interest.deposit_interest,
+share_interest.withdraw_interest,share_interest.total_interest
+from share right join share_interest    on share.particulars=share_interest.particulars
+ where share.account_no=645 and share_interest.account_no=645;
+
+share_interest.deposit_interest,
+share_interest.withdraw_interest,share_interest.total_interest
+
+ ( select share.account_no,share.particulars as sortbydate,share.deposit_amount,share.withdraw_amount,share.balance ,share_interest.deposit_interest,
+share_interest.withdraw_interest,share_interest.total_interest
+from share  left join share_interest    on share.particulars=share_interest.particulars and share.particulars=share_interest.particulars 
+ where share.account_no=123
+  )
+ union
+(select share_interest.account_no, share_interest.particulars ,share.deposit_amount ,share.withdraw_amount,share.balance ,share_interest.deposit_interest,
+share_interest.withdraw_interest,share_interest.total_interest
+from share right join share_interest    on share.particulars=share_interest.particulars and share.particulars=share_interest.particulars
+ where share_interest.account_no=123 ) order by  sortbydate asc;
+//share individual ledger query
+
+create temporary table temp_share select  account_no,particulars ,deposit_amount,withdraw_amount,balance from share where account_no=123;
+create temporary table temp_share_interest select  account_no,particulars ,deposit_interest,withdraw_interest,total_interest from share_interest where account_no=123;
+
+create temporary table share_IL1 select temp_share.account_no,temp_share.particulars as sortbydate,temp_share.deposit_amount,temp_share.withdraw_amount,
+temp_share.balance ,temp_share_interest.deposit_interest,
+temp_share_interest.withdraw_interest,temp_share_interest.total_interest
+from temp_share  left join temp_share_interest    on temp_share.particulars=temp_share_interest.particulars;
+
+create temporary table share_IL2 select temp_share_interest.account_no,temp_share_interest.particulars ,temp_share.deposit_amount,temp_share.withdraw_amount,
+temp_share.balance ,temp_share_interest.deposit_interest,
+temp_share_interest.withdraw_interest,temp_share_interest.total_interest
+from temp_share  right join temp_share_interest    on temp_share.particulars=temp_share_interest.particulars;
+
+(select * from share_IL1)
+ union
+(select * from share_IL2)
+order by  sortbydate; 

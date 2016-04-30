@@ -1,0 +1,44 @@
+user=userTF.getText();
+    pass=passTF.getText();
+    String masPass=maspassTF.getText();
+    String conpass=confirmTF.getText();
+    
+     Connection con=null;
+    if(!user.equals("") && !pass.equals("") && !masPass.equals("") && !conpass.equals("")) 
+    {
+       if(pass.equals(conpass))
+        { 
+          try{
+           Class.forName("com.mysql.jdbc.Driver");
+           con=DriverManager.getConnection("jdbc:mysql://localhost:2015","root",masPass);
+           Statement stm=con.createStatement();
+           
+      stm.executeUpdate("create user \'"+user+"\' identified by \'"+pass+"\'");
+ stm.execute("grant all on pccs.* to \'"+UPEntry.user+"\'");
+      Welcome.install.sc=new SelectLoc();
+           Welcome.install.sc.setVisible(true);
+            setVisible(false);
+       }
+     catch(Exception e)
+    { if(con==null)
+    {JOptionPane.showMessageDialog(null,"Master Password Invalid","install",JOptionPane.ERROR_MESSAGE); }
+     else
+         {
+         JOptionPane.showMessageDialog(null,"User already exists","install",JOptionPane.ERROR_MESSAGE); 
+         userTF.setText("");
+         passTF.setText("");
+         confirmTF.setText("");
+          }
+          
+    }
+        }
+     else 
+      {
+         JOptionPane.showMessageDialog(null,"Confirm Password Invalid","Install PCCS",JOptionPane.ERROR_MESSAGE);
+         confirmTF.setText("");
+      }
+    }
+    else
+    {
+      JOptionPane.showMessageDialog(null,"Fill all the Fields","Install PCCS",JOptionPane.ERROR_MESSAGE);  
+    }

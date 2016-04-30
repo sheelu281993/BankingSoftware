@@ -1,0 +1,84 @@
+create temporary table share_pay select share.account_no ,share.withdraw_amount 
+as share_withdraw_amount from share
+ where share.particulars='2015-03-28' and share.withdraw_amount is not null;
+
+create temporary table share_int_pay select share_interest.account_no ,share_interest.withdraw_interest
+as share_withdraw_interest from share_interest
+ where share_interest.particulars='2015-03-28' and share_interest.withdraw_interest is not null;
+
+create temporary table temp_share_pay1
+select share_pay.account_no,share_pay.share_withdraw_amount,share_int_pay.share_withdraw_interest
+from share_pay left join share_int_pay on share_pay.account_no=share_int_pay.account_no;
+
+create temporary table temp_share_pay2
+select share_int_pay.account_no,share_pay.share_withdraw_amount,share_int_pay.share_withdraw_interest
+from share_pay right join share_int_pay on share_pay.account_no=share_int_pay.account_no;
+
+create temporary  table temp_share_pay
+(select * from temp_share_pay1)
+union
+(select * from temp_share_pay2);
+
+create temporary table rd_pay  select rd.account_no ,rd.withdraw_amount as rd_withdraw_amount 
+from rd 
+ where rd.particulars='2015-03-28' and rd.withdraw_amount is not null;
+
+create temporary table rd_int_pay  select rd_interest.account_no ,
+rd_interest.withdraw_interest as rd_withdraw_interest
+from rd_interest   
+ where rd_interest.particulars='2015-03-28' and rd_interest.withdraw_interest is not null;
+
+create temporary table temp_rd_pay1  select rd_pay.account_no ,rd_pay.rd_withdraw_amount ,
+rd_int_pay.rd_withdraw_interest 
+from rd_pay left join rd_int_pay    on rd_pay.account_no=rd_int_pay.account_no 
+
+create temporary table temp_rd_pay2  select rd_int_pay.account_no ,rd_pay.rd_withdraw_amount ,
+rd_int_pay.rd_withdraw_interest 
+from rd_pay right join rd_int_pay    on rd_pay.account_no=rd_int_pay.account_no 
+
+ create temporary  table temp_rd_pay
+(select * from temp_rd_pay1)
+union
+(select * from temp_rd_pay2);
+  
+create temporary table temp_loan_pay select account_no ,withdraw_loan_amount  from loan_payment
+  where loan_payment.particulars='2015-03-28' and withdraw_loan_amount is not null;
+
+create temporary table temp_dailycashpayment1 select temp_share_pay.account_no,
+temp_share_pay.share_withdraw_amount ,temp_share_pay.share_withdraw_interest,
+temp_rd_pay.rd_withdraw_amount  ,temp_rd_pay.rd_withdraw_interest ,
+temp_loan_pay.withdraw_loan_amount 
+from temp_share_pay left join   temp_rd_pay on temp_share_pay.account_no=temp_rd_pay.account_no left join  temp_loan_pay
+on temp_loan_pay.account_no=temp_share_pay.account_no;
+
+
+
+create temporary table temp_dailycashpayment2 select temp_rd_pay.account_no,temp_share_pay.share_withdraw_amount ,temp_share_pay.share_withdraw_interest,
+temp_rd_pay.rd_withdraw_amount  ,temp_rd_pay.rd_withdraw_interest ,
+temp_loan_pay.withdraw_loan_amount 
+from temp_share_pay right join   temp_rd_pay on temp_share_pay.account_no=temp_rd_pay.account_no left join  temp_loan_pay
+on temp_loan_pay.account_no=temp_rd_pay.account_no;
+
+
+create temporary table temp_dailycashpayment3 select temp_loan_pay.account_no,temp_share_pay.share_withdraw_amount ,temp_share_pay.share_withdraw_interest,
+temp_rd_pay.rd_withdraw_amount  ,temp_rd_pay.rd_withdraw_interest ,
+temp_loan_pay.withdraw_loan_amount 
+from temp_rd_pay right join   temp_loan_pay on temp_loan_pay.account_no=temp_rd_pay.account_no left join  temp_share_pay
+on temp_loan_pay.account_no=temp_share_pay.account_no;
+
+create temporary  table temp_dailycashpayment
+(select * from temp_dailycashpayment1)
+union
+(select * from temp_dailycashpayment2)
+union
+(select * from temp_dailycashpayment3);
+
+select customer.name,temp_dailycashpayment.account_no,
+temp_dailycashpayment.share_withdraw_amount ,
+temp_dailycashpayment.share_withdraw_interest ,
+temp_dailycashpayment.rd_withdraw_amount ,
+temp_dailycashpayment.rd_withdraw_interest ,
+temp_dailycashpayment.withdraw_loan_amount
+from temp_dailycashpayment  
+inner join customer using(account_no);
+
